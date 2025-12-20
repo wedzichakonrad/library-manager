@@ -16,15 +16,15 @@ public class GUI implements IGUI {
 
     private void showUserMenu() {
         System.out.println("1. View Books");
-        System.out.println("2. Search for a book by author");
-        System.out.println("3. Search for a book by title");
+        System.out.println("2. Search by author");
+        System.out.println("3. Search by title");
         System.out.println("4. Exit");
     }
 
     private void showAdminMenu() {
         System.out.println("1. View Books");
-        System.out.println("2. Search for a book by author");
-        System.out.println("3. Search for a book by title");
+        System.out.println("2. Search by author");
+        System.out.println("3. Search by title");
         System.out.println("4. Add Book");
         System.out.println("5. Remove Book");
         System.out.println("6. Edit Book");

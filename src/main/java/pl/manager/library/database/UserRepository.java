@@ -14,7 +14,7 @@ public class UserRepository implements IUserRepository {
 
     public UserRepository() {
         this.addUser("admin", "admin", Role.ADMIN);
-        this.addUser("konrad", "password", Role.USER);
+        this.addUser("user", "user", Role.USER);
     }
 
     private void addUser(String login, String password, Role role) throws IllegalArgumentException {
@@ -32,10 +32,5 @@ public class UserRepository implements IUserRepository {
             }
         }
         return null;
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        return users;
     }
 }

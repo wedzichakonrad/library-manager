@@ -8,7 +8,7 @@ import java.util.List;
 
 @Component
 public class BookRepository implements IBookRepository {
-    private final List<Book> books = new ArrayList<Book>();
+    private final List<Book> books = new ArrayList<>();
     private int bookId = 0;
 
     public BookRepository() {
@@ -35,7 +35,7 @@ public class BookRepository implements IBookRepository {
 
     @Override
     public List<Book> findByAuthor(String author) {
-        List<Book> result = new ArrayList<Book>();
+        List<Book> result = new ArrayList<>();
         for (Book book : books) {
             if (book.getAuthor().equalsIgnoreCase(author)) {
                 result.add(book);
@@ -46,7 +46,7 @@ public class BookRepository implements IBookRepository {
 
     @Override
     public List<Book> findByTitle(String title) {
-        List<Book> result = new ArrayList<Book>();
+        List<Book> result = new ArrayList<>();
         for (Book book : books) {
             if (book.getTitle().equalsIgnoreCase(title)) {
                 result.add(book);

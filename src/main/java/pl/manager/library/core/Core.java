@@ -21,92 +21,95 @@ public class Core implements ICore {
         User user = gui.readUserData();
         User authenticatedUser = authenticator.authenticate(user);
 
-        while (authenticatedUser != null) {
-            this.gui.showMenuForRole(authenticatedUser.getRole());
-            gui.showMessage("Enter your choice: ");
-            String choice = gui.readUserChoice();
-
-            if (gui.isUserChoiceValid(choice, authenticatedUser.getRole())) {
-                if (choice.equals("4") && authenticatedUser.getRole() == Role.USER) {
-                    gui.showMessage("Exiting...");
-                    break;
-                } else if (choice.equals("7") && authenticatedUser.getRole() == Role.ADMIN) {
-                    gui.showMessage("Exiting...");
-                    break;
-                } else {
-
-                    switch (choice) {
-                        case "1":
-                            this.gui.showBooks(
-                                    this.bookRepository.getAllBooks()
-                            );
-                            break;
-                        case "2":
-                            gui.showMessage("Enter book author to search: ");
-                            String author = this.gui.readUserChoice();
-                            this.gui.showBooks(
-                                    this.bookRepository.findByAuthor(author)
-                            );
-                            break;
-                        case "3":
-                            gui.showMessage("Enter book title to search: ");
-                            String title = this.gui.readUserChoice();
-                            this.gui.showBooks(
-                                    this.bookRepository.findByTitle(title)
-                            );
-                            break;
-                        case "4":
-                            Book newBook = this.gui.readBookData();
-                            if (newBook == null) {
-                                break;
-                            }
-                            this.bookRepository.addBook(newBook.getAuthor(), newBook.getTitle());
-                            gui.showMessage("Book added successfully.");
-                            break;
-                        case "5":
-                            Integer bookIdToRemove = this.gui.readBookId("Enter book ID to remove: ");
-                            if (bookIdToRemove == null) {
-                                break;
-                            }
-                            boolean isDeleted = this.bookRepository.deleteBook(bookIdToRemove);
-                            if (isDeleted) {
-                                gui.showMessage("Book removed successfully.");
-                            } else {
-                                gui.showMessage("Book with given ID not found.");
-                            }
-                            break;
-                        case "6":
-                            Integer bookIdToEdit = this.gui.readBookId("Enter book ID to edit: ");
-                            if (bookIdToEdit == null) {
-                                break;
-                            }
-                            Book bookToEdit = this.bookRepository.getBookById(bookIdToEdit);
-                            if (bookToEdit == null) {
-                                gui.showMessage("Book with given ID not found.");
-                                break;
-                            }
-                            Book updatedData = this.gui.readBookData();
-                            if (updatedData == null) {
-                                break;
-                            }
-                            bookToEdit.setAuthor(updatedData.getAuthor());
-                            bookToEdit.setTitle(updatedData.getTitle());
-                            boolean isUpdated = this.bookRepository.updateBook(bookToEdit);
-                            if (isUpdated) {
-                                gui.showMessage("Book updated successfully.");
-                            } else {
-                                gui.showMessage("Failed to update the book.");
-                            }
-                            break;
-                    }
-                }
-            } else {
-                gui.showMessage("Invalid choice. Please try again.");
-            }
-        }
-
         if (authenticatedUser == null) {
             gui.showMessage("Authentication failed. Exiting...");
+            return;
+        }
+
+        handleSession(authenticatedUser);
+    }
+
+    private void handleSession(User user) {
+        while (true) {
+            gui.showMenuForRole(user.getRole());
+            String choice = gui.readUserChoice();
+
+            if (!gui.isUserChoiceValid(choice, user.getRole())) {
+                gui.showMessage("Choice does not exist. Please try again.");
+                continue;
+            }
+
+            if (isExitRequested(choice, user.getRole())) {
+                gui.showMessage("Exiting...");
+                break;
+            }
+
+            handleMenuChoice(choice);
+        }
+    }
+
+    private boolean isExitRequested(String choice, Role role) {
+        return (choice.equals("4") && role == Role.USER) || (choice.equals("7") && role == Role.ADMIN);
+    }
+
+    private void handleMenuChoice(String choice) {
+        switch (choice) {
+            case "1" -> viewBooks();
+            case "2" -> findByAuthor();
+            case "3" -> findByTitle();
+            case "4" -> addBook();
+            case "5" -> removeBook();
+            case "6" -> editBook();
+        }
+    }
+
+    private void viewBooks() {
+        gui.showBooks(bookRepository.getAllBooks());
+        gui.showMessage("---------------------------");
+    }
+
+    private void findByAuthor() {
+        gui.showMessage("Enter book author: ");
+        gui.showBooks(bookRepository.findByAuthor(gui.readUserChoice()));
+    }
+
+    private void findByTitle() {
+        gui.showMessage("Enter book title: ");
+        gui.showBooks(bookRepository.findByTitle(gui.readUserChoice()));
+    }
+
+    private void addBook() {
+        Book newBook = gui.readBookData();
+        if (newBook != null) {
+            bookRepository.addBook(newBook.getAuthor(), newBook.getTitle());
+            gui.showMessage("Book added.");
+        }
+    }
+
+    private void removeBook() {
+        Integer id = gui.readBookId("Enter book ID to remove: ");
+        if (id != null) {
+            boolean deleted = bookRepository.deleteBook(id);
+            gui.showMessage(deleted ? "Book removed." : "Book with given ID not found.");
+        }
+    }
+
+    private void editBook() {
+        Integer id = gui.readBookId("Enter book ID to edit: ");
+        if (id == null) return;
+
+        Book bookToEdit = bookRepository.getBookById(id);
+        if (bookToEdit == null) {
+            gui.showMessage("Book with given ID not found.");
+            return;
+        }
+
+        Book updatedData = gui.readBookData();
+        if (updatedData != null) {
+            bookToEdit.setAuthor(updatedData.getAuthor());
+            bookToEdit.setTitle(updatedData.getTitle());
+            boolean updated = bookRepository.updateBook(bookToEdit);
+            gui.showMessage(updated ? "Book updated successfully." : "Failed to update the book.");
         }
     }
 }
