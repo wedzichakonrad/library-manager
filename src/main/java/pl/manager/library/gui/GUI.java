@@ -13,22 +13,27 @@ import java.util.Scanner;
 @RequiredArgsConstructor
 public class GUI implements IGUI {
     private final Scanner scanner;
+    private final List<String> USER_OPTIONS = List.of("0", "1", "2", "3");
+    private final List<String> ADMIN_OPTIONS = List.of("0", "1", "2", "3", "4", "5", "6", "7", "8");
 
-    private void showUserMenu() {
+    private void showCommonMenu() {
+        System.out.println("0. Exit");
         System.out.println("1. View Books");
         System.out.println("2. Search by author");
         System.out.println("3. Search by title");
-        System.out.println("4. Exit");
+    }
+
+    private void showUserMenu() {
+        showCommonMenu();
     }
 
     private void showAdminMenu() {
-        System.out.println("1. View Books");
-        System.out.println("2. Search by author");
-        System.out.println("3. Search by title");
+        showCommonMenu();
         System.out.println("4. Add Book");
         System.out.println("5. Remove Book");
         System.out.println("6. Edit Book");
-        System.out.println("7. Exit");
+        System.out.println("7. Add User");
+        System.out.println("8. View Users");
     }
 
     @Override
@@ -42,6 +47,7 @@ public class GUI implements IGUI {
 
     @Override
     public void showMenuForRole(Role role) {
+        System.out.println("------------------------");
         if (role == Role.ADMIN) {
             this.showAdminMenu();
         } else {
@@ -57,12 +63,10 @@ public class GUI implements IGUI {
     @Override
     public boolean isUserChoiceValid(String choice, Role role) {
         try {
-            int numChoice = Integer.parseInt(choice);
-            if (role == Role.USER) {
-                return numChoice >= 1 && numChoice <= 4;
-            } else {
-                return numChoice >= 1 && numChoice <= 7;
+            if (role == Role.ADMIN) {
+                return ADMIN_OPTIONS.contains(choice);
             }
+            return USER_OPTIONS.contains(choice);
         } catch (Exception e) {
             return false;
         }
@@ -111,7 +115,15 @@ public class GUI implements IGUI {
     }
 
     @Override
+    public void showUsers(List<User> users) {
+        for (User user : users) {
+            System.out.println(user.getId() + " " + user.getLogin());
+        }
+    }
+
+    @Override
     public void showMessage(String message) {
         System.out.println(message);
     }
+
 }

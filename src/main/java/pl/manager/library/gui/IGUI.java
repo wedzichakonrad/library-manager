@@ -14,5 +14,6 @@ public interface IGUI {
     void showBooks(List<Book> books);
     Integer readBookId(String prompt);
     Book readBookData();
+    void showUsers(List<User> users);
     void showMessage(String message);
 }

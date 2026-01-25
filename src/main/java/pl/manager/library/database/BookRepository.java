@@ -72,10 +72,10 @@ public class BookRepository implements IBookRepository {
 
     @Override
     public boolean updateBook(Book book) {
-        Book existingBook = getBookById(book.getId());
-        if (existingBook != null) {
-            existingBook.setTitle(book.getTitle());
-            existingBook.setAuthor(book.getAuthor());
+        Book bookToUpdate = getBookById(book.getId());
+        if (bookToUpdate != null) {
+            bookToUpdate.setTitle(book.getTitle());
+            bookToUpdate.setAuthor(book.getAuthor());
             return true;
         }
         return false;

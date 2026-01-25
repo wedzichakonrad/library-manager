@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pl.manager.library.authentication.IAuthenticator;
 import pl.manager.library.database.IBookRepository;
+import pl.manager.library.database.IUserRepository;
 import pl.manager.library.gui.IGUI;
 import pl.manager.library.model.Book;
 import pl.manager.library.model.Role;
 import pl.manager.library.model.User;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -15,87 +18,102 @@ public class Core implements ICore {
     private final IGUI gui;
     private final IAuthenticator authenticator;
     private final IBookRepository bookRepository;
+    private final IUserRepository userRepository;
 
     @Override
     public void run() {
-        User user = gui.readUserData();
-        User authenticatedUser = authenticator.authenticate(user);
+        while (true) {
+            User userData = gui.readUserData();
+            User authenticatedUser = authenticator.authenticate(userData);
 
-        if (authenticatedUser == null) {
-            gui.showMessage("Authentication failed. Exiting...");
-            return;
+            if (authenticatedUser == null) {
+                gui.showMessage("Error logging in - try again");
+                continue;
+            }
+
+            handleMenu(authenticatedUser);
+            break;
         }
-
-        handleSession(authenticatedUser);
     }
 
-    private void handleSession(User user) {
+    private void handleMenu(User user) {
+
         while (true) {
             gui.showMenuForRole(user.getRole());
             String choice = gui.readUserChoice();
 
             if (!gui.isUserChoiceValid(choice, user.getRole())) {
-                gui.showMessage("Choice does not exist. Please try again.");
+                gui.showMessage("Wrong choice, try again.");
                 continue;
             }
 
-            if (isExitRequested(choice, user.getRole())) {
-                gui.showMessage("Exiting...");
+            if (choice.equals("0")) {
+                exit();
                 break;
             }
 
-            handleMenuChoice(choice);
+            executeAction(choice);
         }
     }
 
-    private boolean isExitRequested(String choice, Role role) {
-        return (choice.equals("4") && role == Role.USER) || (choice.equals("7") && role == Role.ADMIN);
-    }
-
-    private void handleMenuChoice(String choice) {
+    private void executeAction(String choice) {
         switch (choice) {
-            case "1" -> viewBooks();
-            case "2" -> findByAuthor();
-            case "3" -> findByTitle();
-            case "4" -> addBook();
-            case "5" -> removeBook();
-            case "6" -> editBook();
+            case "1" -> showAllBooks();
+            case "2" -> searchByAuthor();
+            case "3" -> searchByTitle();
+            case "4" -> addNewBook();
+            case "5" -> deleteBook();
+            case "6" -> modifyBook();
+            case "7" -> addNewUser();
+            case "8" -> viewUsers();
         }
     }
 
-    private void viewBooks() {
-        gui.showBooks(bookRepository.getAllBooks());
-        gui.showMessage("---------------------------");
+    private void exit() {
+        gui.showMessage("Logged out.");
     }
 
-    private void findByAuthor() {
-        gui.showMessage("Enter book author: ");
-        gui.showBooks(bookRepository.findByAuthor(gui.readUserChoice()));
+    private void showAllBooks() {
+        List<Book> allBooks = bookRepository.getAllBooks();
+        gui.showBooks(allBooks);
     }
 
-    private void findByTitle() {
-        gui.showMessage("Enter book title: ");
-        gui.showBooks(bookRepository.findByTitle(gui.readUserChoice()));
+    private void searchByAuthor() {
+        gui.showMessage("Specify author:");
+        String author = gui.readUserChoice();
+        List<Book> found = bookRepository.findByAuthor(author);
+        gui.showBooks(found);
     }
 
-    private void addBook() {
-        Book newBook = gui.readBookData();
-        if (newBook != null) {
-            bookRepository.addBook(newBook.getAuthor(), newBook.getTitle());
+    private void searchByTitle() {
+        gui.showMessage("Specify title:");
+        String title = gui.readUserChoice();
+        List<Book> found = bookRepository.findByTitle(title);
+        gui.showBooks(found);
+    }
+
+    private void addNewBook() {
+        Book book = gui.readBookData();
+        if (book != null) {
+            bookRepository.addBook(book.getAuthor(), book.getTitle());
             gui.showMessage("Book added.");
         }
     }
 
-    private void removeBook() {
-        Integer id = gui.readBookId("Enter book ID to remove: ");
-        if (id != null) {
-            boolean deleted = bookRepository.deleteBook(id);
-            gui.showMessage(deleted ? "Book removed." : "Book with given ID not found.");
+    private void deleteBook() {
+        Integer id = gui.readBookId("Enter ID of the book to delete:");
+        if (id == null) return;
+
+        boolean success = bookRepository.deleteBook(id);
+        if (success) {
+            gui.showMessage("Deleted.");
+        } else {
+            gui.showMessage("Book with given ID not found.");
         }
     }
 
-    private void editBook() {
-        Integer id = gui.readBookId("Enter book ID to edit: ");
+    private void modifyBook() {
+        Integer id = gui.readBookId("Enter ID of the book to edit:");
         if (id == null) return;
 
         Book bookToEdit = bookRepository.getBookById(id);
@@ -104,12 +122,26 @@ public class Core implements ICore {
             return;
         }
 
-        Book updatedData = gui.readBookData();
-        if (updatedData != null) {
-            bookToEdit.setAuthor(updatedData.getAuthor());
-            bookToEdit.setTitle(updatedData.getTitle());
-            boolean updated = bookRepository.updateBook(bookToEdit);
-            gui.showMessage(updated ? "Book updated successfully." : "Failed to update the book.");
+        Book newData = gui.readBookData();
+        if (newData != null) {
+            bookToEdit.setAuthor(newData.getAuthor());
+            bookToEdit.setTitle(newData.getTitle());
+            bookRepository.updateBook(bookToEdit);
+            gui.showMessage("Updated successfully.");
         }
+    }
+
+    private void addNewUser() {
+        User userData = gui.readUserData();
+        userRepository.addUser(
+            userData.getLogin(),
+            userData.getPassword(),
+            Role.USER
+        );
+    }
+
+    private void viewUsers() {
+        List<User> users = userRepository.getUsers();
+        gui.showUsers(users);
     }
 }
