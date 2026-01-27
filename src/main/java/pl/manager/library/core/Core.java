@@ -44,7 +44,6 @@ public class Core implements ICore {
 
             if (!gui.isUserChoiceValid(choice, user.getRole())) {
                 gui.showMessage("Wrong choice, try again.");
-                continue;
             }
 
             if (choice.equals("0")) {
