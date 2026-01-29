@@ -5,6 +5,8 @@ import pl.manager.library.model.Book;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Component
 public class BookRepository implements IBookRepository {
@@ -33,26 +35,20 @@ public class BookRepository implements IBookRepository {
         return null;
     }
 
+    private List<Book> findBy(Predicate<Book> condition) {
+        return books.stream()
+                .filter(condition)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<Book> findByAuthor(String author) {
-        List<Book> result = new ArrayList<>();
-        for (Book book : books) {
-            if (book.getAuthor().equalsIgnoreCase(author)) {
-                result.add(book);
-            }
-        }
-        return result;
+        return findBy(book -> book.getAuthor().equalsIgnoreCase(author));
     }
 
     @Override
     public List<Book> findByTitle(String title) {
-        List<Book> result = new ArrayList<>();
-        for (Book book : books) {
-            if (book.getTitle().equalsIgnoreCase(title)) {
-                result.add(book);
-            }
-        }
-        return result;
+        return findBy(book -> book.getTitle().equalsIgnoreCase(title));
     }
 
     @Override
@@ -62,12 +58,7 @@ public class BookRepository implements IBookRepository {
 
     @Override
     public boolean deleteBook(int id) {
-        Book bookToRemove = getBookById(id);
-        if (bookToRemove != null) {
-            books.remove(bookToRemove);
-            return true;
-        }
-        return false;
+        return books.removeIf(book -> book.getId() == id);
     }
 
     @Override

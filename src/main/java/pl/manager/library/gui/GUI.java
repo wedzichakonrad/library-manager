@@ -8,19 +8,23 @@ import pl.manager.library.model.User;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
 public class GUI implements IGUI {
     private final Scanner scanner;
     private final List<String> USER_OPTIONS = List.of("0", "1", "2", "3");
-    private final List<String> ADMIN_OPTIONS = List.of("0", "1", "2", "3", "4", "5", "6", "7", "8");
+    private final List<String> ADMIN_OPTIONS = Stream.concat(
+            USER_OPTIONS.stream(),
+            Stream.of("4", "5", "6", "7", "8")
+    ).toList();
 
     private void showCommonMenu() {
         System.out.println("0. Exit");
         System.out.println("1. View Books");
-        System.out.println("2. Search by author");
-        System.out.println("3. Search by title");
+        System.out.println("2. Search books by author");
+        System.out.println("3. Search books by title");
     }
 
     private void showUserMenu() {
